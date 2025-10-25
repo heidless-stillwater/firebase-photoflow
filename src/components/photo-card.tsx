@@ -1,3 +1,4 @@
+
 import Image from "next/image";
 import type { Photo } from "@/lib/types";
 import { Card } from "@/components/ui/card";
