@@ -62,7 +62,7 @@ export function ImageUploader({ onUploadFinished }: ImageUploaderProps) {
     reader.onloadend = async () => {
       const dataUri = reader.result as string;
       setPreviewUrl(dataUri);
-      setFileData(dataUri.split(',')[1]); // Store base64 data for upload
+      setFileData(dataUri); // Store full data URI for AI captioning
 
       try {
         const result = await getAiCaption(dataUri);
@@ -101,7 +101,8 @@ export function ImageUploader({ onUploadFinished }: ImageUploaderProps) {
         storage,
         `photos/${auth.currentUser.uid}/${photoId}`
       );
-      const uploadTask = await uploadString(storageRef, fileData, 'base64', {
+      // 'data_url' is the correct format string for uploadString with data URI
+      const uploadTask = await uploadString(storageRef, fileData, 'data_url', {
         contentType: 'image/jpeg',
       });
       const downloadURL = await getDownloadURL(uploadTask.ref);
@@ -225,7 +226,7 @@ export function ImageUploader({ onUploadFinished }: ImageUploaderProps) {
               className="pr-10"
               disabled={isLoading || isUploading}
             />
-            {isLoading && !previewUrl && (
+            {isLoading && (
               <div className="absolute right-3 bottom-3">
                 <LoaderCircle className="h-5 w-5 animate-spin text-muted-foreground" />
               </div>
