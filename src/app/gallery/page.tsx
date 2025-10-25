@@ -23,7 +23,7 @@ export default function GalleryPage() {
   }, [user, isUserLoading, router]);
 
   const photosQuery = useMemoFirebase(() => {
-    if (!user) return null;
+    if (!user || !firestore) return null;
     return query(collection(firestore, 'users', user.uid, 'photos'), orderBy('uploadDate', 'desc'));
   }, [firestore, user]);
 
@@ -35,15 +35,15 @@ export default function GalleryPage() {
   };
 
   const filteredPhotos = useMemo(() => {
-    const query = searchQuery.toLowerCase().trim();
+    const queryValue = searchQuery.toLowerCase().trim();
     if (!photos) return [];
-    if (!query) return photos;
+    if (!queryValue) return photos;
     
     return photos.filter(
       (photo) =>
-        photo.caption.toLowerCase().includes(query) ||
+        photo.caption?.toLowerCase().includes(queryValue) ||
         (photo.tags && photo.tags.some((tag) =>
-          tag.toLowerCase().includes(query)
+          tag.toLowerCase().includes(queryValue)
         ))
     );
   }, [photos, searchQuery]);
