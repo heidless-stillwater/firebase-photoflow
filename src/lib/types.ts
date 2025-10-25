@@ -2,7 +2,7 @@ export interface Photo {
   id: string;
   userId: string;
   imageUrl: string;
-  generatedCaption: string;
+  caption: string;
   tags: string[];
   uploadDate: Date;
 }

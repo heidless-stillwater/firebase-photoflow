@@ -18,7 +18,6 @@ export default function UploadPage() {
   }, [user, isUserLoading, router]);
 
   const handleUploadFinished = (newPhoto: Photo) => {
-    console.log('Upload finished, redirecting to gallery.', newPhoto);
     router.push('/');
   };
 

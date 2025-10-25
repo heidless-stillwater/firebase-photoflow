@@ -41,7 +41,7 @@ export default function Home() {
     
     return photos.filter(
       (photo) =>
-        photo.generatedCaption.toLowerCase().includes(query) ||
+        photo.caption.toLowerCase().includes(query) ||
         (photo.tags && photo.tags.some((tag) =>
           tag.toLowerCase().includes(query)
         ))

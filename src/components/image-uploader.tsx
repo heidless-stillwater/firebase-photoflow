@@ -109,7 +109,7 @@ export function ImageUploader({ onUploadFinished }: ImageUploaderProps) {
       const photoDoc: Omit<Photo, 'id'> = {
         userId: auth.currentUser.uid,
         imageUrl: downloadURL,
-        generatedCaption: caption,
+        caption: caption,
         tags: tags
           .split(',')
           .map((tag) => tag.trim())
@@ -127,11 +127,13 @@ export function ImageUploader({ onUploadFinished }: ImageUploaderProps) {
         uploadDate: new Date(),
       };
 
-      onUploadFinished(finalPhoto);
       toast({
-        title: 'Upload Successful',
-        description: 'Your photo has been added to the gallery.',
+        title: 'Upload Successful!',
+        description: 'Your photo has been added to your gallery.',
       });
+
+      onUploadFinished(finalPhoto);
+
     } catch (error: any) {
       console.error('Upload failed: ', error);
       toast({
