@@ -14,6 +14,7 @@ import { useAuth, useFirestore, useStorage } from '@/firebase';
 import { getDownloadURL, ref, uploadString } from 'firebase/storage';
 import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
 import { Card, CardContent } from './ui/card';
+import { setDocumentNonBlocking, addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 
 interface ImageUploaderProps {
   onUploadFinished: (photo: Photo) => void;
@@ -108,8 +109,8 @@ export function ImageUploader({ onUploadFinished }: ImageUploaderProps) {
       // 2. Save metadata to Firestore
       const photoDoc: Omit<Photo, 'id'> = {
         userId: auth.currentUser.uid,
-        url: downloadURL,
-        caption: caption,
+        imageUrl: downloadURL,
+        generatedCaption: caption,
         tags: tags
           .split(',')
           .map((tag) => tag.trim())
@@ -117,11 +118,9 @@ export function ImageUploader({ onUploadFinished }: ImageUploaderProps) {
         // @ts-ignore
         uploadDate: serverTimestamp(),
       };
-
-      const docRef = await addDoc(
-        collection(firestore, 'users', auth.currentUser.uid, 'photos'),
-        photoDoc
-      );
+      
+      const photosCollectionRef = collection(firestore, 'users', auth.currentUser.uid, 'photos');
+      const docRef = await addDocumentNonBlocking(photosCollectionRef, photoDoc);
 
       const finalPhoto: Photo = {
         id: docRef.id,
