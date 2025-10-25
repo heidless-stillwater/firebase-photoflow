@@ -10,8 +10,8 @@ interface PhotoGalleryProps {
 export default function PhotoGallery({ photos, isLoading }: PhotoGalleryProps) {
   if (isLoading) {
     return (
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
-        {Array.from({ length: 8 }).map((_, i) => (
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
+        {Array.from({ length: 9 }).map((_, i) => (
           <Skeleton key={i} className="aspect-square w-full" />
         ))}
       </div>
@@ -28,7 +28,7 @@ export default function PhotoGallery({ photos, isLoading }: PhotoGalleryProps) {
   }
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
       {photos.map((photo) => (
         <PhotoCard key={photo.id} photo={photo} />
       ))}
