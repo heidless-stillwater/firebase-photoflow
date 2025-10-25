@@ -1,10 +1,9 @@
 
 'use client';
 
-import { useState } from 'react';
+import Link from 'next/link';
 import type { Photo } from "@/lib/types";
 import { Button } from "@/components/ui/button";
-import { PhotoUploader } from "@/components/photo-uploader";
 import { Upload, Camera, LogOut } from "lucide-react";
 import { useAuth } from '@/firebase';
 import { useRouter } from 'next/navigation';
@@ -25,7 +24,6 @@ interface HeaderProps {
 }
 
 export default function Header({ onUploadFinished }: HeaderProps) {
-  const [isUploaderOpen, setIsUploaderOpen] = useState(false);
   const auth = useAuth();
   const router = useRouter();
   const { user } = useUser();
@@ -44,16 +42,18 @@ export default function Header({ onUploadFinished }: HeaderProps) {
     <>
       <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur-sm">
         <div className="container mx-auto flex h-16 items-center justify-between px-4">
-          <div className="flex items-center gap-2">
+          <Link href="/" className="flex items-center gap-2">
             <Camera className="h-7 w-7 text-primary" />
             <h1 className="text-2xl font-bold font-headline tracking-tight text-foreground">
               PhotoFlow
             </h1>
-          </div>
+          </Link>
           <div className="flex items-center gap-4">
-            <Button onClick={() => setIsUploaderOpen(true)}>
-              <Upload />
-              Upload
+            <Button asChild>
+              <Link href="/upload">
+                <Upload />
+                Upload
+              </Link>
             </Button>
             {user && (
               <DropdownMenu>
@@ -76,11 +76,6 @@ export default function Header({ onUploadFinished }: HeaderProps) {
           </div>
         </div>
       </header>
-      <PhotoUploader 
-        open={isUploaderOpen}
-        onOpenChange={setIsUploaderOpen}
-        onUploadFinished={onUploadFinished}
-      />
     </>
   );
 }
