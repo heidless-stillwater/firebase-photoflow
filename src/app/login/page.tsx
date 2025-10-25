@@ -60,14 +60,14 @@ export default function AuthPage() {
           title: 'Account Created',
           description: "You've been signed up successfully.",
         });
-        router.push('/');
+        router.push('/gallery');
       } else {
         await signInWithEmailAndPassword(auth, values.email, values.password);
         toast({
           title: 'Signed In',
           description: "You're now signed in.",
         });
-        router.push('/');
+        router.push('/gallery');
       }
     } catch (error: any) {
       toast({

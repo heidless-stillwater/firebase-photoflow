@@ -18,7 +18,7 @@ export default function UploadPage() {
   }, [user, isUserLoading, router]);
 
   const handleUploadFinished = (newPhoto: Photo) => {
-    router.push('/');
+    router.push('/gallery');
   };
 
   if (isUserLoading || !user) {
