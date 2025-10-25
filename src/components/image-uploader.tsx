@@ -257,10 +257,10 @@ export function ImageUploader({ onUploadFinished }: ImageUploaderProps) {
             >
               {isUploading ? (
                 <>
-                  <LoaderCircle className="animate-spin mr-2" /> Adding...
+                  <LoaderCircle className="animate-spin mr-2" /> Uploading...
                 </>
               ) : (
-                'Add to Gallery'
+                'Upload Image'
               )}
             </Button>
           </div>
