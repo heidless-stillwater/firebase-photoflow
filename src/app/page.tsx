@@ -1,28 +1,20 @@
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
-import { PlaceHolderImages } from '@/lib/placeholder-images';
 import type { Photo } from '@/lib/types';
 import Header from '@/components/header';
 import PhotoGallery from '@/components/photo-gallery';
 import { Input } from '@/components/ui/input';
 import { Search } from 'lucide-react';
-import { useUser } from '@/firebase';
+import { useUser, useFirestore, useMemoFirebase, useCollection } from '@/firebase';
 import { useRouter } from 'next/navigation';
-
-const initialPhotos: Photo[] = PlaceHolderImages.map((p) => ({
-  id: p.id,
-  url: p.imageUrl,
-  caption: p.description,
-  tags: p.imageHint.split(' ').filter(Boolean),
-  imageHint: p.imageHint,
-}));
+import { collection, query, orderBy } from 'firebase/firestore';
 
 export default function Home() {
-  const [photos, setPhotos] = useState<Photo[]>(initialPhotos);
   const [searchQuery, setSearchQuery] = useState('');
   const { user, isUserLoading } = useUser();
   const router = useRouter();
+  const firestore = useFirestore();
 
   useEffect(() => {
     if (!isUserLoading && !user) {
@@ -30,20 +22,29 @@ export default function Home() {
     }
   }, [user, isUserLoading, router]);
 
+  const photosQuery = useMemoFirebase(() => {
+    if (!user) return null;
+    return query(collection(firestore, 'users', user.uid, 'photos'), orderBy('uploadDate', 'desc'));
+  }, [firestore, user]);
+
+  const { data: photos, isLoading: isLoadingPhotos } = useCollection<Photo>(photosQuery);
+
   const handleUploadFinished = (newPhoto: Photo) => {
-    setPhotos((prevPhotos) => [newPhoto, ...prevPhotos]);
+    // The gallery will update automatically via the real-time listener
+    console.log('Upload finished, gallery will update.', newPhoto);
   };
 
   const filteredPhotos = useMemo(() => {
     const query = searchQuery.toLowerCase().trim();
+    if (!photos) return [];
     if (!query) return photos;
     
     return photos.filter(
       (photo) =>
         photo.caption.toLowerCase().includes(query) ||
-        photo.tags.some((tag) =>
+        (photo.tags && photo.tags.some((tag) =>
           tag.toLowerCase().includes(query)
-        )
+        ))
     );
   }, [photos, searchQuery]);
 
@@ -71,7 +72,7 @@ export default function Home() {
             />
           </div>
         </div>
-        <PhotoGallery photos={filteredPhotos} />
+        <PhotoGallery photos={filteredPhotos} isLoading={isLoadingPhotos} />
       </main>
       <footer className="py-6 text-center text-sm text-muted-foreground">
         <p>Built for PhotoFlow. All rights reserved.</p>

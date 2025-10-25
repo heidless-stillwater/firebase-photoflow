@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useRef, ChangeEvent, FormEvent } from "react";
@@ -18,6 +19,9 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import Image from "next/image";
 import { Upload, X, LoaderCircle, Image as ImageIcon } from "lucide-react";
+import { useAuth, useFirestore, useStorage } from "@/firebase";
+import { getDownloadURL, ref, uploadString } from "firebase/storage";
+import { addDoc, collection, serverTimestamp } from "firebase/firestore";
 
 interface PhotoUploaderProps {
   open: boolean;
@@ -31,17 +35,24 @@ export function PhotoUploader({
   onUploadFinished,
 }: PhotoUploaderProps) {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [fileData, setFileData] = useState<string | null>(null);
   const [caption, setCaption] = useState("");
   const [tags, setTags] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
+  const auth = useAuth();
+  const firestore = useFirestore();
+  const storage = useStorage();
 
   const resetState = () => {
     setPreviewUrl(null);
+    setFileData(null);
     setCaption("");
     setTags("");
     setIsLoading(false);
+    setIsUploading(false);
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
@@ -65,54 +76,97 @@ export function PhotoUploader({
     reader.onloadend = async () => {
       const dataUri = reader.result as string;
       setPreviewUrl(dataUri);
-      const result = await getAiCaption(dataUri);
-      if ("error" in result) {
-        toast({
-          variant: "destructive",
-          title: "AI Caption Failed",
-          description: result.error,
-        });
-      } else {
-        setCaption(result.caption);
+      setFileData(dataUri.split(',')[1]); // Store base64 data for upload
+
+      try {
+        const result = await getAiCaption(dataUri);
+        if ("error" in result) {
+          toast({
+            variant: "destructive",
+            title: "AI Caption Failed",
+            description: result.error,
+          });
+        } else {
+          setCaption(result.caption);
+        }
+      } finally {
+        setIsLoading(false);
       }
-      setIsLoading(false);
     };
     reader.readAsDataURL(file);
   };
 
-  const handleSubmit = (event: FormEvent) => {
+  const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
-    if (!previewUrl) {
+    if (!fileData || !auth.currentUser) {
       toast({
         variant: "destructive",
-        title: "No photo selected",
-        description: "Please select a photo to upload.",
+        title: "Upload Error",
+        description: "No photo selected or user not logged in.",
       });
       return;
     }
 
-    const newPhoto: Photo = {
-      id: new Date().toISOString(),
-      url: previewUrl,
-      caption: caption,
-      tags: tags.split(",").map((tag) => tag.trim()).filter(Boolean),
-      imageHint: "uploaded photo",
-    };
+    setIsUploading(true);
+    try {
+      // 1. Upload to Firebase Storage
+      const photoId = new Date().toISOString();
+      const storageRef = ref(storage, `photos/${auth.currentUser.uid}/${photoId}`);
+      const uploadTask = await uploadString(storageRef, fileData, 'base64', {
+        contentType: 'image/jpeg'
+      });
+      const downloadURL = await getDownloadURL(uploadTask.ref);
 
-    onUploadFinished(newPhoto);
-    onOpenChange(false);
+      // 2. Save metadata to Firestore
+      const photoDoc: Omit<Photo, 'id'> = {
+        userId: auth.currentUser.uid,
+        url: downloadURL,
+        caption: caption,
+        tags: tags.split(",").map((tag) => tag.trim()).filter(Boolean),
+        // @ts-ignore
+        uploadDate: serverTimestamp(),
+      };
+      
+      const docRef = await addDoc(collection(firestore, 'users', auth.currentUser.uid, 'photos'), photoDoc);
+
+      const finalPhoto: Photo = {
+        id: docRef.id,
+        ...photoDoc,
+        uploadDate: new Date(), // for client-side update
+      }
+
+      onUploadFinished(finalPhoto);
+      toast({
+        title: "Upload Successful",
+        description: "Your photo has been added to the gallery.",
+      });
+      onOpenChange(false);
+    } catch (error: any) {
+      console.error("Upload failed: ", error);
+      toast({
+        variant: "destructive",
+        title: "Upload Failed",
+        description: error.message || "Could not upload photo.",
+      });
+    } finally {
+      setIsUploading(false);
+    }
   };
   
   const handleOpenChange = (isOpen: boolean) => {
-    onOpenChange(isOpen);
-    if (!isOpen) {
-      resetState();
+    if (!isUploading) {
+        onOpenChange(isOpen);
+        if (!isOpen) {
+            resetState();
+        }
     }
   }
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="sm:max-w-[480px] grid-rows-[auto_1fr_auto]" onInteractOutside={(e) => e.preventDefault()}>
+      <DialogContent className="sm:max-w-[480px] grid-rows-[auto_1fr_auto]" onInteractOutside={(e) => {
+          if (isUploading) e.preventDefault();
+      }}>
         <DialogHeader>
           <DialogTitle>Upload a New Photo</DialogTitle>
         </DialogHeader>
@@ -126,10 +180,11 @@ export function PhotoUploader({
               ref={fileInputRef}
               onChange={handleFileChange}
               className="hidden"
+              disabled={isLoading || isUploading}
             />
             <div
               className="relative aspect-video w-full border-2 border-dashed border-muted-foreground/30 rounded-lg flex items-center justify-center cursor-pointer hover:bg-muted transition-colors"
-              onClick={() => fileInputRef.current?.click()}
+              onClick={() => !(isLoading || isUploading) && fileInputRef.current?.click()}
             >
               {previewUrl ? (
                 <>
@@ -139,7 +194,7 @@ export function PhotoUploader({
                     fill
                     className="object-cover rounded-md"
                   />
-                  <Button
+                  {!isUploading && <Button
                     type="button"
                     variant="destructive"
                     size="icon"
@@ -150,7 +205,7 @@ export function PhotoUploader({
                     }}
                   >
                     <X className="h-4 w-4" />
-                  </Button>
+                  </Button>}
                 </>
               ) : (
                 <div className="text-center text-muted-foreground">
@@ -159,9 +214,10 @@ export function PhotoUploader({
                   <p className="text-xs">Max file size: 4MB</p>
                 </div>
               )}
-               {isLoading && !previewUrl && (
+               {(isLoading || isUploading) && (
                 <div className="absolute inset-0 bg-background/80 flex items-center justify-center rounded-lg">
                   <LoaderCircle className="h-8 w-8 animate-spin text-primary" />
+                  <span className="ml-2">{isUploading ? 'Uploading...' : 'Processing...'}</span>
                 </div>
               )}
             </div>
@@ -175,8 +231,9 @@ export function PhotoUploader({
               onChange={(e) => setCaption(e.target.value)}
               rows={3}
               className="pr-10"
+              disabled={isLoading || isUploading}
             />
-            {isLoading && (
+            {isLoading && !previewUrl && (
               <div className="absolute right-3 bottom-3">
                  <LoaderCircle className="h-5 w-5 animate-spin text-muted-foreground" />
               </div>
@@ -189,17 +246,18 @@ export function PhotoUploader({
               placeholder="e.g. travel, nature, sunset"
               value={tags}
               onChange={(e) => setTags(e.target.value)}
+              disabled={isUploading}
             />
           </div>
         </form>
         <DialogFooter>
           <DialogClose asChild>
-            <Button type="button" variant="secondary">
+            <Button type="button" variant="secondary" disabled={isUploading}>
               Cancel
             </Button>
           </DialogClose>
-          <Button type="submit" form="upload-form" disabled={!previewUrl || isLoading}>
-            {isLoading ? <><LoaderCircle className="animate-spin" /> Uploading...</> : 'Add to Gallery'}
+          <Button type="submit" form="upload-form" disabled={!previewUrl || isLoading || isUploading}>
+            {isUploading ? <><LoaderCircle className="animate-spin mr-2" /> Adding...</> : 'Add to Gallery'}
           </Button>
         </DialogFooter>
       </DialogContent>
