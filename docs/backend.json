@@ -1,0 +1,179 @@
+{
+  "entities": {
+    "User": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "User",
+      "type": "object",
+      "description": "Represents a user within the PhotoFlow application.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the user."
+        },
+        "email": {
+          "type": "string",
+          "description": "User's email address.",
+          "format": "email"
+        }
+      },
+      "required": [
+        "id",
+        "email"
+      ]
+    },
+    "Photo": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Photo",
+      "type": "object",
+      "description": "Represents a photo uploaded to the PhotoFlow gallery.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the photo."
+        },
+        "userId": {
+          "type": "string",
+          "description": "Reference to User. (Relationship: User 1:N Photo)"
+        },
+        "imageUrl": {
+          "type": "string",
+          "description": "URL of the uploaded photo."
+        },
+        "generatedCaption": {
+          "type": "string",
+          "description": "AI-generated caption for the photo."
+        },
+        "uploadDate": {
+          "type": "string",
+          "description": "Date and time the photo was uploaded.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "userId",
+        "imageUrl",
+        "uploadDate"
+      ]
+    },
+    "Tag": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Tag",
+      "type": "object",
+      "description": "Represents a tag that can be associated with a photo.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the tag."
+        },
+        "tagName": {
+          "type": "string",
+          "description": "Name of the tag."
+        }
+      },
+      "required": [
+        "id",
+        "tagName"
+      ]
+    },
+    "PhotoTag": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "PhotoTag",
+      "type": "object",
+      "description": "Represents the relationship between photos and tags (many-to-many).",
+      "properties": {
+        "photoId": {
+          "type": "string",
+          "description": "Reference to Photo. (Relationship: Photo N:N Tag)"
+        },
+        "tagId": {
+          "type": "string",
+          "description": "Reference to Tag. (Relationship: Photo N:N Tag)"
+        }
+      },
+      "required": [
+        "photoId",
+        "tagId"
+      ]
+    }
+  },
+  "auth": {
+    "providers": [
+      "password",
+      "anonymous"
+    ]
+  },
+  "firestore": {
+    "structure": [
+      {
+        "path": "/users/{userId}",
+        "definition": {
+          "entityName": "User",
+          "schema": {
+            "$ref": "#/backend/entities/User"
+          },
+          "description": "Stores user profiles. Uses path-based ownership.  Only the user can access their profile data.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier of the user."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/users/{userId}/photos/{photoId}",
+        "definition": {
+          "entityName": "Photo",
+          "schema": {
+            "$ref": "#/backend/entities/Photo"
+          },
+          "description": "Stores photos uploaded by each user. Photos are associated with their respective owners, enforcing the 1:N relationship between users and photos. The userId is embedded within the path, supporting simple and secure access control.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier of the user."
+            },
+            {
+              "name": "photoId",
+              "description": "The unique identifier of the photo."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/tags/{tagId}",
+        "definition": {
+          "entityName": "Tag",
+          "schema": {
+            "$ref": "#/backend/entities/Tag"
+          },
+          "description": "Stores a global list of tags that can be associated with photos.",
+          "params": [
+            {
+              "name": "tagId",
+              "description": "The unique identifier of the tag."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/photo_tags/{photoTagId}",
+        "definition": {
+          "entityName": "PhotoTag",
+          "schema": {
+            "$ref": "#/backend/entities/PhotoTag"
+          },
+          "description": "Represents the many-to-many relationship between photos and tags.  A top-level collection allows for efficient querying of all tags, and supports secure list operations. Includes photoId and tagId.",
+          "params": [
+            {
+              "name": "photoTagId",
+              "description": "The unique identifier for the phototag document.  This ID is autogenerated."
+            }
+          ]
+        }
+      }
+    ],
+    "reasoning": "The Firestore structure is designed to provide a secure and scalable data model for the PhotoFlow application, focusing on authorization independence and clear data ownership. The structure prioritizes path-based ownership for user-generated content (photos) and utilizes denormalization to ensure that authorization checks can be performed efficiently without complex queries or `get()` calls in security rules. This design supports the application's core features, including photo uploads, gallery views, AI-powered caption generation, tagging, and search. Specifically:\n\n*   `/users/{userId}`: Stores user profiles. This collection uses path-based ownership, ensuring that only the user can access their profile data.\n*   `/users/{userId}/photos/{photoId}`: Stores photos uploaded by each user. This nested structure ensures that photos are directly associated with their respective owners, enforcing the 1:N relationship between users and photos.  The userId is embedded within the path, supporting simple and secure access control. The photo documents themselves do not require denormalization.\n*   `/tags/{tagId}`: Stores a global list of tags that can be associated with photos.\n*   `/photo_tags/{photoTagId}`: Represents the many-to-many relationship between photos and tags.  While a subcollection under photos might seem intuitive, using a top-level collection allows for efficient querying of all tags, and supports secure list operations by restricting write access. The `photoId` and `tagId` fields are present to establish the relationships. Because all relationships are stored in the `photo_tags` document, no authorization context needs to be denormalized.\n\nThis structure achieves **Authorization Independence** by embedding the `userId` directly in the photo path (`/users/{userId}/photos/{photoId}`).  This eliminates the need to read the user document to determine ownership of a photo. Security rules can directly check if `request.auth.uid == userId`. This also simplifies atomic operations.\n\nThe structure supports the required **QAPs**:\n\n*   **Secure List Operations:** The segregation of user-owned photos into subcollections (`/users/{userId}/photos/{photoId}`) enables secure listing of photos by user. Rules can easily filter based on the `userId` without needing to filter the data itself.\n*   **Tag Searches:** While tags themselves are global, access to the `photo_tags` collection (representing the association between a specific tag and a photo) can be controlled to prevent unauthorized modification. Listing of tags can be achieved through rules applied to the global tag collection."
+  }
+}
