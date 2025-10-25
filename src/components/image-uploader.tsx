@@ -62,7 +62,7 @@ export function ImageUploader({ onUploadFinished }: ImageUploaderProps) {
     reader.onloadend = async () => {
       const dataUri = reader.result as string;
       setPreviewUrl(dataUri);
-      setFileData(dataUri); // Store full data URI for AI captioning
+      setFileData(dataUri);
 
       try {
         const result = await getAiCaption(dataUri);
@@ -101,10 +101,8 @@ export function ImageUploader({ onUploadFinished }: ImageUploaderProps) {
         storage,
         `photos/${auth.currentUser.uid}/${photoId}`
       );
-      // 'data_url' is the correct format string for uploadString with data URI
-      const uploadTask = await uploadString(storageRef, fileData, 'data_url', {
-        contentType: 'image/jpeg',
-      });
+      
+      const uploadTask = await uploadString(storageRef, fileData, 'data_url');
       const downloadURL = await getDownloadURL(uploadTask.ref);
 
       // 2. Save metadata to Firestore
@@ -128,7 +126,7 @@ export function ImageUploader({ onUploadFinished }: ImageUploaderProps) {
       const finalPhoto: Photo = {
         id: docRef.id,
         ...photoDoc,
-        uploadDate: new Date(), // for client-side update
+        uploadDate: new Date(),
       };
 
       onUploadFinished(finalPhoto);
@@ -154,7 +152,7 @@ export function ImageUploader({ onUploadFinished }: ImageUploaderProps) {
         <form
           id="upload-form"
           onSubmit={handleSubmit}
-          className="grid gap-6 py-4"
+          className="grid gap-6"
         >
           <div className="grid gap-2">
             <Label htmlFor="photo">Photo</Label>
