@@ -1,10 +1,24 @@
-"use client";
+
+'use client';
 
 import { useState } from 'react';
 import type { Photo } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { PhotoUploader } from "@/components/photo-uploader";
-import { Upload, Camera } from "lucide-react";
+import { Upload, Camera, LogOut } from "lucide-react";
+import { useAuth } from '@/firebase';
+import { useRouter } from 'next/navigation';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
+import { useUser } from '@/firebase';
+
 
 interface HeaderProps {
   onUploadFinished: (photo: Photo) => void;
@@ -12,6 +26,19 @@ interface HeaderProps {
 
 export default function Header({ onUploadFinished }: HeaderProps) {
   const [isUploaderOpen, setIsUploaderOpen] = useState(false);
+  const auth = useAuth();
+  const router = useRouter();
+  const { user } = useUser();
+
+  const handleSignOut = async () => {
+    await auth.signOut();
+    router.push('/login');
+  };
+
+  const getInitials = (email: string | null | undefined) => {
+    if (!email) return 'U';
+    return email.substring(0, 2).toUpperCase();
+  }
 
   return (
     <>
@@ -23,10 +50,30 @@ export default function Header({ onUploadFinished }: HeaderProps) {
               PhotoFlow
             </h1>
           </div>
-          <Button onClick={() => setIsUploaderOpen(true)}>
-            <Upload />
-            Upload
-          </Button>
+          <div className="flex items-center gap-4">
+            <Button onClick={() => setIsUploaderOpen(true)}>
+              <Upload />
+              Upload
+            </Button>
+            {user && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Avatar className="cursor-pointer">
+                    <AvatarImage src={user.photoURL ?? ''} />
+                    <AvatarFallback>{getInitials(user.email)}</AvatarFallback>
+                  </Avatar>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuLabel>{user.email}</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={handleSignOut}>
+                    <LogOut className="mr-2 h-4 w-4" />
+                    <span>Sign out</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
+          </div>
         </div>
       </header>
       <PhotoUploader 

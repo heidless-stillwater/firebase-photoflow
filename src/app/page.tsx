@@ -1,12 +1,14 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import type { Photo } from '@/lib/types';
 import Header from '@/components/header';
 import PhotoGallery from '@/components/photo-gallery';
 import { Input } from '@/components/ui/input';
 import { Search } from 'lucide-react';
+import { useUser } from '@/firebase';
+import { useRouter } from 'next/navigation';
 
 const initialPhotos: Photo[] = PlaceHolderImages.map((p) => ({
   id: p.id,
@@ -19,6 +21,14 @@ const initialPhotos: Photo[] = PlaceHolderImages.map((p) => ({
 export default function Home() {
   const [photos, setPhotos] = useState<Photo[]>(initialPhotos);
   const [searchQuery, setSearchQuery] = useState('');
+  const { user, isUserLoading } = useUser();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!isUserLoading && !user) {
+      router.push('/login');
+    }
+  }, [user, isUserLoading, router]);
 
   const handleUploadFinished = (newPhoto: Photo) => {
     setPhotos((prevPhotos) => [newPhoto, ...prevPhotos]);
@@ -36,6 +46,14 @@ export default function Home() {
         )
     );
   }, [photos, searchQuery]);
+
+  if (isUserLoading || !user) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <p>Loading...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col min-h-screen bg-background text-foreground">
