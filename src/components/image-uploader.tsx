@@ -14,7 +14,6 @@ import { useAuth, useFirestore, useStorage } from '@/firebase';
 import { getDownloadURL, ref, uploadString } from 'firebase/storage';
 import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
 import { Card, CardContent } from './ui/card';
-import { setDocumentNonBlocking, addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 
 interface ImageUploaderProps {
   onUploadFinished: (photo: Photo) => void;
@@ -97,10 +96,10 @@ export function ImageUploader({ onUploadFinished }: ImageUploaderProps) {
     setIsUploading(true);
     try {
       // 1. Upload to Firebase Storage
-      const photoId = new Date().toISOString();
+      const photoId = `${Date.now()}`;
       const storageRef = ref(
         storage,
-        `photos/${auth.currentUser.uid}/${photoId}`
+        `user-photos/${auth.currentUser.uid}/${photoId}`
       );
       
       const uploadTask = await uploadString(storageRef, fileData, 'data_url');
@@ -120,7 +119,7 @@ export function ImageUploader({ onUploadFinished }: ImageUploaderProps) {
       };
       
       const photosCollectionRef = collection(firestore, 'users', auth.currentUser.uid, 'photos');
-      const docRef = await addDocumentNonBlocking(photosCollectionRef, photoDoc);
+      const docRef = await addDoc(photosCollectionRef, photoDoc);
 
       const finalPhoto: Photo = {
         id: docRef.id,
