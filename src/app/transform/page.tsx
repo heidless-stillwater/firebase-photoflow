@@ -3,15 +3,13 @@
 import { useState, useMemo, useEffect } from 'react';
 import type { Photo } from '@/lib/types';
 import Header from '@/components/header';
-import PhotoGallery from '@/components/photo-gallery';
-import { Input } from '@/components/ui/input';
-import { Search } from 'lucide-react';
 import { useUser, useFirestore, useMemoFirebase, useCollection } from '@/firebase';
 import { useRouter } from 'next/navigation';
 import { collection, query, orderBy } from 'firebase/firestore';
+import { Skeleton } from '@/components/ui/skeleton';
+import TransformCard from '@/components/transform-card';
 
 export default function TransformPage() {
-  const [searchQuery, setSearchQuery] = useState('');
   const { user, isUserLoading } = useUser();
   const router = useRouter();
   const firestore = useFirestore();
@@ -34,20 +32,6 @@ export default function TransformPage() {
     console.log('Upload finished, gallery will update.', newPhoto);
   };
 
-  const filteredPhotos = useMemo(() => {
-    const queryValue = searchQuery.toLowerCase().trim();
-    if (!photos) return [];
-    if (!queryValue) return photos;
-    
-    return photos.filter(
-      (photo) =>
-        photo.caption?.toLowerCase().includes(queryValue) ||
-        (photo.tags && photo.tags.some((tag) =>
-          tag.toLowerCase().includes(queryValue)
-        ))
-    );
-  }, [photos, searchQuery]);
-
   if (isUserLoading || !user) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -60,20 +44,35 @@ export default function TransformPage() {
     <div className="flex flex-col min-h-screen bg-background text-foreground">
       <Header onUploadFinished={handleUploadFinished} />
       <main className="flex-grow container mx-auto px-4 py-8">
-        <h1 className="text-4xl font-bold text-center mb-8">Transform Images</h1>
-        <div className="mb-8 max-w-md mx-auto">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-            <Input
-              type="search"
-              placeholder="Search by caption or tags..."
-              className="pl-10 w-full"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-          </div>
+        <div className="text-center mb-12">
+            <h1 className="text-4xl font-bold tracking-tight">AI Image Transformations</h1>
+            <p className="text-lg text-muted-foreground mt-2">
+                Select a photo and a style to create a new masterpiece.
+            </p>
         </div>
-        <PhotoGallery photos={filteredPhotos} isLoading={isLoadingPhotos} />
+        
+        {isLoadingPhotos ? (
+             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {Array.from({ length: 3 }).map((_, i) => (
+                    <div key={i} className="grid gap-4">
+                        <Skeleton className="aspect-square w-full" />
+                        <Skeleton className="aspect-square w-full" />
+                    </div>
+                ))}
+            </div>
+        ) : photos && photos.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {photos.map((photo) => (
+                    <TransformCard key={photo.id} photo={photo} />
+                ))}
+            </div>
+        ) : (
+            <div className="text-center py-20 text-muted-foreground">
+                <h2 className="text-2xl font-semibold">No Photos to Transform</h2>
+                <p className="mt-2">Upload some photos to get started.</p>
+            </div>
+        )}
+
       </main>
       <footer className="py-6 text-center text-sm text-muted-foreground">
         <p>Built for PhotoFlow. All rights reserved.</p>
