@@ -1,10 +1,10 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import { useUser } from '@/firebase';
 import { useRouter } from 'next/navigation';
 import Header from '@/components/header';
-import { PhotoUploaderForm } from '@/components/photo-uploader-form';
+import { ImageUploader } from '@/components/image-uploader';
 import type { Photo } from '@/lib/types';
 
 export default function UploadPage() {
@@ -36,7 +36,7 @@ export default function UploadPage() {
       <main className="flex-grow container mx-auto px-4 py-8">
         <div className="max-w-2xl mx-auto">
           <h1 className="text-3xl font-bold mb-6">Upload a New Photo</h1>
-          <PhotoUploaderForm onUploadFinished={handleUploadFinished} />
+          <ImageUploader onUploadFinished={handleUploadFinished} />
         </div>
       </main>
       <footer className="py-6 text-center text-sm text-muted-foreground">

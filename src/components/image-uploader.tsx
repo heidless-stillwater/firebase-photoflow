@@ -15,11 +15,11 @@ import { getDownloadURL, ref, uploadString } from 'firebase/storage';
 import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
 import { Card, CardContent } from './ui/card';
 
-interface PhotoUploaderFormProps {
+interface ImageUploaderProps {
   onUploadFinished: (photo: Photo) => void;
 }
 
-export function PhotoUploaderForm({ onUploadFinished }: PhotoUploaderFormProps) {
+export function ImageUploader({ onUploadFinished }: ImageUploaderProps) {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [fileData, setFileData] = useState<string | null>(null);
   const [caption, setCaption] = useState('');
