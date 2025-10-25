@@ -1,110 +1,53 @@
-/**
- * @description This ruleset enforces a strict user-ownership model for user profiles and photos.
- *   It allows public read access to the tags and photo_tags collections, but restricts write access.
- * @dataStructure
- *   - /users/{userId}: Stores user profiles, accessible only by the user themselves.
- *   - /users/{userId}/photos/{photoId}: Stores photos, accessible only by the owning user.
- *   - /tags/{tagId}: Stores a global list of tags, publicly readable but write-protected.
- *   - /photo_tags/{photoTagId}: Represents the many-to-many relationship between photos and tags, publicly readable but write-protected.
- * @keySecurityDecisions
- *   - Users can only access their own data.
- *   - Listing of all users is disallowed.
- *   - Tags and PhotoTags are publicly readable to enable discovery and search.
- *   - Write operations are restricted based on ownership or denied completely for public collections.
- * @denormalizationForAuthorization
- *   - The `userId` is embedded in the `/users/{userId}/photos/{photoId}` path to enable direct authorization checks without additional reads.
- */
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
     /**
-     * @description Enforces user-ownership for user profiles. Only the user can read or write their own profile.
+     * @description Enforces that only the authenticated user can read or write their own profile data.
      * @path /users/{userId}
-     * @allow (create) User with ID 'user123' can create their profile.
-     *   request.auth.uid == 'user123' && request.resource.data.id == 'user123'
-     * @allow (get) User with ID 'user123' can read their profile.
-     *   request.auth.uid == 'user123'
-     * @allow (update) User with ID 'user123' can update their profile.
-     *   request.auth.uid == 'user123' && resource.data.id == 'user123'
-     * @allow (delete) User with ID 'user123' can delete their profile.
-     *   request.auth.uid == 'user123' && resource.data.id == 'user123'
-     * @deny  (create) User with ID 'user456' cannot create a profile for user 'user123'.
-     *   request.auth.uid == 'user456' && request.resource.data.id == 'user123'
-     * @principle Enforces document ownership for all operations.
      */
     match /users/{userId} {
-      function isOwner(userId) {
-        return request.auth != null && request.auth.uid == userId;
-      }
-
-      allow get: if isOwner(userId);
-      allow list: if false; // Listing all users is not permitted.
-      allow create: if isOwner(userId) && request.resource.data.id == userId;
-      allow update: if isOwner(userId) && resource.data.id == userId;
-      allow delete: if isOwner(userId) && resource.data.id == userId;
+      allow get: if request.auth.uid == userId;
+      allow list: if false;
+      allow create: if request.auth.uid == userId;
+      allow update: if request.auth.uid == userId;
+      allow delete: if request.auth.uid == userId;
     }
 
     /**
-     * @description Enforces user-ownership for photos. Only the user who owns the photo can read, create, update, or delete it.
+     * @description Enforces that only the owner can read, create, update, or delete their own photos.
      * @path /users/{userId}/photos/{photoId}
-     * @allow (create) User with ID 'user123' can create a photo in their profile.
-     *   request.auth.uid == 'user123'
-     * @allow (get) User with ID 'user123' can read a photo in their profile.
-     *   request.auth.uid == 'user123'
-     * @allow (update) User with ID 'user123' can update a photo in their profile.
-     *   request.auth.uid == 'user123' && resource != null
-     * @allow (delete) User with ID 'user123' can delete a photo in their profile.
-     *   request.auth.uid == 'user123' && resource != null
-     * @deny  (create) User with ID 'user456' cannot create a photo for user 'user123'.
-     *   request.auth.uid == 'user456'
-     * @principle Enforces document ownership for all operations.
      */
     match /users/{userId}/photos/{photoId} {
-      function isOwner(userId) {
-        return request.auth != null && request.auth.uid == userId;
-      }
-      function isExistingOwner(userId) {
-        return isOwner(userId) && resource != null;
-      }
-
-      allow get: if isOwner(userId);
-      allow list: if isOwner(userId);
-      allow create: if isOwner(userId);
-      allow update: if isExistingOwner(userId);
-      allow delete: if isExistingOwner(userId);
+      allow get: if request.auth.uid == userId;
+      allow list: if request.auth.uid == userId;
+      allow create: if request.auth.uid == userId;
+      allow update: if request.auth.uid == userId;
+      allow delete: if request.auth.uid == userId;
     }
 
     /**
      * @description Allows public read access to tags, but restricts write access.
      * @path /tags/{tagId}
-     * @allow (get) Any user can read a tag.
-     *   true
-     * @allow (list) Any user can list tags.
-     *   true
-     * @deny  (create) No one can create a tag.
-     *   false
-     * @principle Tags are globally readable, but only the application can manage them.
      */
     match /tags/{tagId} {
-      allow get, list: if true;
-      allow create, update, delete: if false;
+      allow get: if true;
+      allow list: if true;
+      allow create: if false;
+      allow update: if false;
+      allow delete: if false;
     }
 
     /**
      * @description Allows public read access to photo_tags, but restricts write access.
      * @path /photo_tags/{photoTagId}
-     * @allow (get) Any user can read a photo_tag.
-     *   true
-     * @allow (list) Any user can list photo_tags.
-     *   true
-     * @deny  (create) No one can create a photo_tag.
-     *   false
-     * @principle PhotoTags are globally readable, but only the application can manage them.
      */
     match /photo_tags/{photoTagId} {
-      allow get, list: if true;
-      allow create, update, delete: if false;
+      allow get: if true;
+      allow list: if true;
+      allow create: if false;
+      allow update: if false;
+      allow delete: if false;
     }
   }
 }
