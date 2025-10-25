@@ -1,3 +1,76 @@
 {
-  "placeholderImages": []
+  "placeholderImages": [
+    {
+      "id": "1",
+      "description": "A serene mountain lake reflecting the sunrise.",
+      "imageUrl": "https://images.unsplash.com/photo-1438382458652-54431bf59e01?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxtb3VudGFpbiUyMGxha2V8ZW58MHx8fHwxNzYxMzIxMzk1fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "mountain lake"
+    },
+    {
+      "id": "2",
+      "description": "Dense green forest with sunlight filtering through the trees.",
+      "imageUrl": "https://images.unsplash.com/photo-1655473479605-e599fe7fcb8c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHxncmVlbiUyMGZvcmVzdHxlbnwwfHx8fDE3NjEzNzUxODB8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "green forest"
+    },
+    {
+      "id": "3",
+      "description": "A bustling city street at night with vibrant neon lights.",
+      "imageUrl": "https://images.unsplash.com/photo-1513061379709-ef0cd1695189?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxjaXR5JTIwbmlnaHR8ZW58MHx8fHwxNzYxMzczMDYzfDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "city night"
+    },
+    {
+      "id": "4",
+      "description": "Golden sand dunes stretching across a vast desert.",
+      "imageUrl": "https://images.unsplash.com/photo-1488197047962-b48492212cda?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHxkZXNlcnQlMjBkdW5lc3xlbnwwfHx8fDE3NjEzMTI1NDl8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "desert dunes"
+    },
+    {
+      "id": "5",
+      "description": "A colorful coral reef teeming with tropical fish.",
+      "imageUrl": "https://images.unsplash.com/photo-1580019542155-247062e19ce4?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxjb3JhbCUyMHJlZWZ8ZW58MHx8fHwxNzYxMzQ3NDA2fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "coral reef"
+    },
+    {
+      "id": "6",
+      "description": "A close-up of a blooming cherry blossom branch.",
+      "imageUrl": "https://images.unsplash.com/photo-1538943186303-104afadcbb16?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHxjaGVycnklMjBibG9zc29tfGVufDB8fHx8MTc2MTM4MjM1MHww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "cherry blossom"
+    },
+    {
+      "id": "7",
+      "description": "An aerial view of a dramatic coastline with crashing waves.",
+      "imageUrl": "https://images.unsplash.com/photo-1623985369749-be6038739d1d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHxkcmFtYXRpYyUyMGNvYXN0bGluZXxlbnwwfHx8fDE3NjEzOTE4MjV8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "dramatic coastline"
+    },
+    {
+      "id": "8",
+      "description": "A rustic barn in a field during a golden sunset.",
+      "imageUrl": "https://images.unsplash.com/photo-1654067199404-83f926910570?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHxydXN0aWMlMjBiYXJufGVufDB8fHx8MTc2MTI5NzQ4OHww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "rustic barn"
+    },
+    {
+      "id": "9",
+      "description": "A majestic waterfall cascading down mossy rocks.",
+      "imageUrl": "https://images.unsplash.com/photo-1508690471604-cafd081190a1?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHxtYWplc3RpYyUyMHdhdGVyZmFsbHxlbnwwfHx8fDE3NjEzOTE4MjV8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "majestic waterfall"
+    },
+    {
+      "id": "10",
+      "description": "A charming cobblestone street in a historic European town.",
+      "imageUrl": "https://images.unsplash.com/photo-1672681643274-0a1a2a5a9549?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxjb2JibGVzdG9uZSUyMHN0cmVldHxlbnwwfHx8fDE3NjEzOTE4MjZ8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "cobblestone street"
+    },
+    {
+      "id": "11",
+      "description": "A field of vibrant sunflowers under a clear blue sky.",
+      "imageUrl": "https://images.unsplash.com/photo-1588834719631-1a5a4adaed5b?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw4fHxzdW5mbG93ZXIlMjBmaWVsZHxlbnwwfHx8fDE3NjEzNDc0MDd8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "sunflower field"
+    },
+    {
+      "id": "12",
+      "description": "A futuristic cityscape with sleek, modern architecture.",
+      "imageUrl": "https://images.unsplash.com/photo-1756037020602-0853d1d0e62d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxmdXR1cmlzdGljJTIwY2l0eXNjYXBlfGVufDB8fHx8MTc2MTMzNjgxNnww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "futuristic cityscape"
+    }
+  ]
 }
